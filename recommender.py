@@ -1,28 +1,3 @@
-"""
-WasteLess Recommender System — v2
-==================================
-Verbeteringen t.o.v. v1:
-  1. Lengte penalty  — korte recepten (weinig ingrediënten) worden minder bevoordeeld
-  2. MMR diversiteit — Maximal Marginal Relevance voorkomt herhalingen in top-N
-  3. Categorie boost — zorgt voor variatie in gerechttypes (lunch/diner/snack/dessert)
-
-Scores:
-  basis_score     = 0.6 * hoeveelheid_score + 0.4 * tfidf_score
-  gecorrigeerde   = basis_score * lengte_penalty(n_ingredienten)
-  top-N           = MMR herschikking op gecorrigeerde scores
-
-Aanpassingen voor pantry_proxies.xlsx:
-  - user_id       : integer (1–100), geen "U001"-format
-  - Kolom mapping : ingredient (was: Ingredient), hoeveelheid (was: Hoeveelheid),
-                    eenheid (was: Eenheid), profiel (was: Persona)
-  - Pantry bevat extra kolom 'categorie' (zuivel/groente_vers/vlees_vis/…)
-    → gebruikt als extra feature in TF-IDF gebruikersdocument
-
-Gebruik:
-    python recommender_v2.py --gebruiker 1 --top 5 --verbose
-    python recommender_v2.py --gebruiker 21 --top 10 --bijna
-    python recommender_v2.py --alle --top 10 --output aanbevelingen.xlsx
-"""
 
 import argparse
 import re
@@ -32,15 +7,13 @@ from rapidfuzz import fuzz, process
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
-# ── Paden ──────────────────────────────────────────────────────────────────────
+
 RECEPTEN_PAD  = r"recepten_AH.xlsx"
 VOORRAAD_PAD  = r"pantry_proxies.xlsx"
 
-# ── Gewichten eindscore ────────────────────────────────────────────────────────
 GEWICHT_HOEVEELHEID = 0.6
 GEWICHT_TFIDF       = 0.4
 
-# ── Lengte penalty ─────────────────────────────────────────────────────────────
 MIN_ING        = 6      # onder dit aantal ingrediënten gaat de penalty in
 PENALTY_KRACHT = 0.4    # maximale penalty (0.4 = max 40% aftrek)
 
